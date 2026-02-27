@@ -11,7 +11,7 @@ class DegradationPipeline:
     SandNet의 공간적 해상도 유지 원칙에 따라 동일 해상도의 (sRGB,[0, 1]) 텐서 쌍을 반환합니다.
     """
 
-    def __init__(self, scale_factor: int = 2):
+    def __init__(self, scale_factor: int = 1):
         self.scale = scale_factor
 
     def _apply_blur(self, img: np.ndarray) -> np.ndarray:

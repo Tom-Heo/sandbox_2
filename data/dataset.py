@@ -25,7 +25,7 @@ class DIV2KDataset(Dataset):
     def __init__(
         self,
         root_dir: str = "data",
-        scale_factor: int = 2,
+        scale_factor: int = 1,
         patch_size: int = 256,
         download: bool = False,
     ):
