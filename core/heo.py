@@ -184,6 +184,6 @@ class Heo:
 
             l1_loss = diff.abs()
 
-            loss = torch.where(abs_diff <= 0.001, sharp_loss, l1_loss) / 1000.0
+            loss = torch.where(abs_diff <= 0.001, sharp_loss, l1_loss)
 
             return loss.mean()
