@@ -1,5 +1,6 @@
 import os
-import sys  # 진행률 출력을 위한 내장 모듈 추가
+import sys
+import time  # 쿨타임 계산을 위한 모듈 추가
 import glob
 import cv2
 import urllib.request
@@ -43,7 +44,6 @@ class DIV2KDataset(Dataset):
         os.makedirs(self.root_dir, exist_ok=True)
         zip_path = os.path.join(self.root_dir, "DIV2K_train_HR.zip")
 
-        # 1. 이미 온전하게 압축이 풀려있는지 확인
         if (
             os.path.exists(self.extract_dir)
             and len(os.listdir(self.extract_dir)) >= 800
@@ -53,7 +53,6 @@ class DIV2KDataset(Dataset):
             )
             return
 
-        # [방어 로직] 2. zip 파일이 존재하더라도 손상되었거나 찌꺼기라면 가차 없이 삭제
         if os.path.exists(zip_path):
             if not zipfile.is_zipfile(zip_path):
                 self.logger.warning(
@@ -61,38 +60,47 @@ class DIV2KDataset(Dataset):
                 )
                 os.remove(zip_path)
 
-        # 3. zip 파일이 없으면 다운로드 진행
         if not os.path.exists(zip_path):
             self.logger.info(f"DIV2K 데이터셋 다운로드 시작: {self.DIV2K_URL}")
 
-            # [서버 차단 방어] 기본 urllib 봇을 차단하는 경우를 대비해 브라우저 헤더로 위장합니다.
             opener = urllib.request.build_opener()
             opener.addheaders = [
                 ("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             ]
             urllib.request.install_opener(opener)
 
+            # [Throttle] 출력 과부하 방지를 위한 쿨타임 변수
+            last_time = 0.0
+
             def reporthook(block_num, block_size, total_size):
+                nonlocal last_time
                 downloaded = block_num * block_size
+
                 if total_size > 0:
+                    current_time = time.time()
                     percent = min(100.0, downloaded * 100.0 / total_size)
-                    bar_length = 40
-                    filled_length = int(bar_length * percent / 100)
-                    bar = "█" * filled_length + "-" * (bar_length - filled_length)
 
-                    mb_downloaded = downloaded / (1024 * 1024)
-                    mb_total = total_size / (1024 * 1024)
+                    # 0.2초가 지났거나, 다운로드가 100% 완료되었을 때만 콘솔에 출력합니다.
+                    if current_time - last_time >= 0.2 or percent >= 100.0:
+                        bar_length = 40
+                        filled_length = int(bar_length * percent / 100)
+                        bar = "█" * filled_length + "-" * (bar_length - filled_length)
 
-                    sys.stdout.write(
-                        f"\r[{bar}] {percent:.1f}% ({mb_downloaded:.1f} MB / {mb_total:.1f} MB)"
-                    )
-                    sys.stdout.flush()
+                        mb_downloaded = downloaded / (1024 * 1024)
+                        mb_total = total_size / (1024 * 1024)
+
+                        sys.stdout.write(
+                            f"\r[{bar}] {percent:.1f}% ({mb_downloaded:.1f} MB / {mb_total:.1f} MB)"
+                        )
+                        sys.stdout.flush()
+
+                        # 마지막 출력 시간 갱신
+                        last_time = current_time
 
             urllib.request.urlretrieve(self.DIV2K_URL, zip_path, reporthook=reporthook)
             sys.stdout.write("\n")
             self.logger.info("다운로드 완료.")
 
-        # 4. 검증된 zip 파일 압축 해제
         self.logger.info("DIV2K 데이터셋 압축 해제 중...")
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(self.root_dir)
