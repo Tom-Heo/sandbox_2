@@ -7,7 +7,7 @@ from .block import Bottleneck, Stage, Block, SimpleGate
 
 
 class SandNet(nn.Module):
-    def __init__(self, bottleneck_dim=2048):
+    def __init__(self, bottleneck_dim=1024):
         super().__init__()
         self.base_dim = bottleneck_dim // 8
 

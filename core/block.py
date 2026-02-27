@@ -53,12 +53,15 @@ class Stage(nn.Module):
 
         self.block1 = Block(dim)
         self.block2 = Block(dim)
+        self.block3 = Block(dim)
+        self.block4 = Block(dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         x = self.block1(x)
         x = self.block2(x)
-
+        x = self.block3(x)
+        x = self.block4(x)
         return x
 
 
