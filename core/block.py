@@ -22,7 +22,7 @@ class SimpleGate(nn.Module):
 
         # [사소한 공들임] 파이썬 내장 math.cbrt 대신 PyTorch 텐서 연산 사용
         # 미분 그래프(Autograd)를 끊지 않고, 음수 값의 세제곱근을 안전하게 계산합니다.
-        return torch.sign(prod) * torch.abs(prod).pow(1.0 / 3.0)
+        return torch.sign(prod) * (torch.abs(prod) + (1e-8)).pow(1.0 / 3.0)
 
 
 class Block(nn.Module):
