@@ -121,14 +121,22 @@ class DIV2KDataset(Dataset):
                 f"이미지 디코딩 실패. 파일이 손상되었을 수 있습니다: {path}"
             )
 
-        # 1. Random Crop을 통한 공간 차원(Spatial Dimensions) 통일
-        h, w = image.shape[:2]
+        # [고품질 축소] 원본 해상도의 가로세로를 정확히 1/2로 줄입니다.
+        # 축소 과정의 앨리어싱(Aliasing) 억제에 가장 탁월한 INTER_AREA를 사용합니다.
+        h_orig, w_orig = image.shape[:2]
+        image = cv2.resize(
+            image, (w_orig // 2, h_orig // 2), interpolation=cv2.INTER_AREA
+        )
 
-        # [사소한 결계] 만약 원본 이미지가 patch_size보다 작다면 강제 확대 (DIV2K에서는 드물지만 예외 차단용)
+        # 1. Random Crop을 통한 공간 차원(Spatial Dimensions) 통일
+        h, w = image.shape[:2]  # 1/2로 축소된 새로운 해상도를 기준으로 삼습니다.
+
+        # [사소한 결계] 만약 축소된 이미지가 patch_size보다 작아졌다면 강제 확대
         if h < self.patch_size or w < self.patch_size:
             image = cv2.resize(
                 image,
                 (max(w, self.patch_size), max(h, self.patch_size)),
+                # 확대할 때는 INTER_AREA가 아닌 INTER_CUBIC이 품질의 근본입니다.
                 interpolation=cv2.INTER_CUBIC,
             )
             h, w = image.shape[:2]
@@ -137,7 +145,7 @@ class DIV2KDataset(Dataset):
         y = random.randint(0, h - self.patch_size)
         x = random.randint(0, w - self.patch_size)
 
-        # NumPy 메모리 슬라이싱 (새로운 메모리 할당 없이 포인터만 이동하므로 연산 비용이 0에 가깝습니다)
+        # NumPy 메모리 슬라이싱
         cropped_image = image[y : y + self.patch_size, x : x + self.patch_size]
 
         # 2. 잘라낸 패치를 열화 파이프라인에 통과
