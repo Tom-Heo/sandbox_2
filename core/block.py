@@ -17,8 +17,12 @@ class SimpleGate(nn.Module):
         # 채널 차원(dim=1)을 기준으로 텐서를 3개로 분할합니다.
         x1, x2, x3 = x.chunk(3, dim=1)
 
-        # 세 텐서를 곱하여 비선형성(Non-linearity)을 생성합니다.
-        return math.cbrt(x1 * x2 * x3)
+        # 세 텐서의 요소별 곱
+        prod = x1 * x2 * x3
+
+        # [사소한 공들임] 파이썬 내장 math.cbrt 대신 PyTorch 텐서 연산 사용
+        # 미분 그래프(Autograd)를 끊지 않고, 음수 값의 세제곱근을 안전하게 계산합니다.
+        return torch.sign(prod) * torch.abs(prod).pow(1.0 / 3.0)
 
 
 class Block(nn.Module):
