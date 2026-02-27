@@ -38,7 +38,7 @@ def get_args():
 
     # [하이퍼파라미터]
     parser.add_argument("--epochs", type=int, default=1000, help="총 학습 에폭")
-    parser.add_argument("--batch_size", type=int, default=8, help="배치 크기")
+    parser.add_argument("--batch_size", type=int, default=4, help="배치 크기")
     parser.add_argument(
         "--num_workers", type=int, default=4, help="데이터 로더 워커 수"
     )
