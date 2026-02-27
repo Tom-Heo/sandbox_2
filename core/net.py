@@ -95,4 +95,4 @@ class SandNet(nn.Module):
 
         x = self.head(x)
 
-        return raw + x
+        return x
