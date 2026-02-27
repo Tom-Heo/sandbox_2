@@ -126,7 +126,7 @@ class Heo:
                 param_groups.append(
                     {
                         "params": params,
-                        "lr": lr * dim / 3,  # 요청하신 대로 lr에 dim / 3을 곱하여 증폭
+                        "lr": lr * dim,  # 요청하신 대로 lr에 dim을 곱하여 증폭
                         "weight_decay": 0.0,  # Weight Decay 해제
                     }
                 )
